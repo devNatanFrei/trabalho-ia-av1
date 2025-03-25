@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 
 def load_and_prepare_data(filename='EMGsDataset.csv'):
     data = np.genfromtxt(filename, delimiter=',')
-    X = data[:2, :].T  # N x p (50000 x 2)
-    labels = data[2, :].astype(int)  # N x 1
+    X = data[:2, :].T  
+    labels = data[2, :].astype(int)  
     Y = np.zeros((len(labels), 5))
     for i, label in enumerate(labels):
         Y[i, label-1] = 1
@@ -126,7 +126,7 @@ class NaiveBayesClassifier:
         for c in range(1, n_classes + 1):
             X_c = X[labels == c]
             self.means.append(np.mean(X_c, axis=0))
-            self.vars.append(np.var(X_c, axis=0) + 1e-10)  # Evita divisão por zero
+            self.vars.append(np.var(X_c, axis=0) + 1e-10)  
             self.priors.append(len(X_c) / len(X))
     
     def predict(self, X):
@@ -154,7 +154,7 @@ class GaussianClassifierRegularized:
             X_c = X[labels == c]
             self.means.append(np.mean(X_c, axis=0))
             cov = np.cov(X_c.T)
-            # Regularização de Friedman
+       
             self.covs.append((1 - self.lambda_) * cov + self.lambda_ * np.eye(cov.shape[0]) * np.trace(cov) / cov.shape[0])
             self.priors.append(len(X_c) / len(X))
     
@@ -165,8 +165,8 @@ class GaussianClassifierRegularized:
         
         for c in range(n_classes):
             diff = X - self.means[c]
-            cov = self.covs[c] + 1e-4 * np.eye(self.covs[c].shape[0])  # Regularização adicional
-            cov_inv = np.linalg.pinv(cov)  # Usa pseudo-inversa
+            cov = self.covs[c] + 1e-4 * np.eye(self.covs[c].shape[0])  
+            cov_inv = np.linalg.pinv(cov)  
             exponent = -0.5 * np.sum(diff @ cov_inv * diff, axis=1)
             scores[:, c] = exponent + np.log(self.priors[c])
         
