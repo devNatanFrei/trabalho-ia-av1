@@ -172,7 +172,7 @@ class GaussianClassifierRegularized:
         
         return np.argmax(scores, axis=1) + 1
 
-def monte_carlo_validation(X, Y, model_class, R=100, test_size=0.2, lambda_=None):
+def monte_carlo_validation(X, Y, model_class, R=500, test_size=0.2, lambda_=None):
     accuracies = []
     n_samples = len(Y)
     
@@ -199,39 +199,34 @@ def monte_carlo_validation(X, Y, model_class, R=100, test_size=0.2, lambda_=None
     
     return accuracies
 
-def main():
-    X, Y, labels = load_and_prepare_data()
-    plot_scatter(X, labels)
+X, Y, labels = load_and_prepare_data()
+plot_scatter(X, labels)
+   
+models = {
+    'MQO': MQOClassifier,
+    'Gaussian': GaussianClassifier,
+    'GaussianEqualCov': GaussianClassifierEqualCov,
+    'GaussianAggregated': GaussianClassifierAggregated,
+    'NaiveBayes': NaiveBayesClassifier,
+    'GaussianRegularized_0': lambda: GaussianClassifierRegularized(0),
+    'GaussianRegularized_0.25': lambda: GaussianClassifierRegularized(0.25),
+    'GaussianRegularized_0.5': lambda: GaussianClassifierRegularized(0.5),
+    'GaussianRegularized_0.75': lambda: GaussianClassifierRegularized(0.75),
+    'GaussianRegularized_1': lambda: GaussianClassifierRegularized(1)
+}
     
-    models = {
-        'MQO': MQOClassifier,
-        'Gaussian': GaussianClassifier,
-        'GaussianEqualCov': GaussianClassifierEqualCov,
-        'GaussianAggregated': GaussianClassifierAggregated,
-        'NaiveBayes': NaiveBayesClassifier,
-        'GaussianRegularized_0': lambda: GaussianClassifierRegularized(0),
-        'GaussianRegularized_0.25': lambda: GaussianClassifierRegularized(0.25),
-        'GaussianRegularized_0.5': lambda: GaussianClassifierRegularized(0.5),
-        'GaussianRegularized_0.75': lambda: GaussianClassifierRegularized(0.75),
-        'GaussianRegularized_1': lambda: GaussianClassifierRegularized(1)
-    }
+results = {}
+for name, model_class in models.items():
+    accuracies = monte_carlo_validation(X, Y, model_class)
+    results[name] = accuracies
     
-    results = {}
-    for name, model_class in models.items():
-        accuracies = monte_carlo_validation(X, Y, model_class)
-        results[name] = accuracies
+for name, accuracies in results.items():
+    print(f"{name} - Acurácia média: {np.mean(accuracies):.4f} (±{np.std(accuracies):.4f})")
     
-    for name, accuracies in results.items():
-        print(f"{name} - Acurácia média: {np.mean(accuracies):.4f} (±{np.std(accuracies):.4f})")
-    
-    plt.figure(figsize=(12, 8))
-    for name, accuracies in results.items():
-        plt.hist(accuracies, bins=20, alpha=0.5, label=name)
-    plt.xlabel('Acurácia')
-    plt.ylabel('Frequência')
-    plt.title('Distribuição das Acurácias - Validação Monte Carlo')
-    plt.legend()
-    plt.show()
-
-if __name__ == "__main__":
-    main()
+plt.figure(figsize=(12, 8))
+for name, accuracies in results.items():
+    plt.hist(accuracies, bins=20, alpha=0.5, label=name)
+plt.xlabel('Acurácia')
+plt.ylabel('Frequência')
+plt.title('Distribuição das Acurácias - Validação Monte Carlo')
+plt.legend()
